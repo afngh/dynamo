@@ -16,8 +16,18 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.http import JsonResponse
+
+def root_status(request):
+    return JsonResponse({
+        "status": "online",
+        "service": "Dynamo Transformer Streaming API",
+        "endpoint": "/dynamo/"
+    })
 
 urlpatterns = [
+    path('', root_status, name='root-status'),
     path('admin/', admin.site.urls),
     path('dynamo/', include('stream.urls'))
 ]
+
