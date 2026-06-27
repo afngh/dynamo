@@ -3,7 +3,6 @@
   color-scheme: light dark;
 }
 
-/* Claude-like Light Theme */
 [data-bs-theme="light"] {
   --app-bg: #fbf9f5;
   --header-bg: rgba(251, 249, 245, 0.9);
@@ -35,7 +34,6 @@
   --code-block-color: #f4f4f5;
 }
 
-/* Claude-like Dark Theme */
 [data-bs-theme="dark"] {
   --app-bg: #18181b;
   --header-bg: rgba(24, 24, 27, 0.9);
@@ -77,7 +75,6 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Minimal Header */
 .app-header {
   background: var(--header-bg);
   backdrop-filter: blur(8px);
@@ -85,7 +82,6 @@ body {
   border-bottom: 1px solid var(--border-color);
 }
 
-/* Input Box */
 .chat-input-wrapper {
   background: var(--input-bg);
   border: 1px solid var(--input-border);
@@ -99,7 +95,6 @@ body {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
 }
 
-/* Custom Scrollbar */
 #chat-scroll {
   scrollbar-width: thin;
   scrollbar-color: var(--scrollbar-thumb) transparent;
@@ -114,7 +109,6 @@ body {
   border-radius: 3px;
 }
 
-/* Streaming Blink Cursor */
 .streaming-cursor {
   display: inline-block;
   width: 7px;
@@ -130,7 +124,6 @@ body {
   50% { opacity: 0; }
 }
 
-/* Good Loader - Pulsing Dots */
 .typing-loader {
   display: inline-flex;
   align-items: center;
@@ -165,7 +158,6 @@ body {
   }
 }
 
-/* Prompt Card */
 .prompt-card {
   background: var(--input-bg);
   border: 1px solid var(--border-color);
@@ -194,7 +186,6 @@ body {
   color: var(--btn-color);
 }
 
-/* Markdown Content Formatting */
 .markdown-content p {
   margin-bottom: 0.75rem;
   white-space: pre-wrap;
@@ -250,4 +241,49 @@ body {
   padding-left: 12px;
   color: var(--text-secondary);
   margin: 8px 0;
+}
+
+/* Hyperparameter Settings Panel & Sliders */
+.settings-panel {
+  background: var(--input-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  padding: 16px;
+  margin-bottom: 12px;
+  width: 100%;
+  max-width: 480px;
+}
+
+.form-range::-webkit-slider-thumb {
+  background: var(--accent-color);
+}
+
+.form-range::-moz-range-thumb {
+  background: var(--accent-color);
+}
+
+.form-range::-ms-thumb {
+  background: var(--accent-color);
+}
+
+/* Authentication Landing Screen */
+.auth-landing {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.auth-card {
+  background: var(--input-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  padding: 40px 32px;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  text-align: center;
 }

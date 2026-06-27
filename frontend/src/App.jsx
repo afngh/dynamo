@@ -45,6 +45,53 @@ function TypingLoader() {
   );
 }
 
+function AuthLanding({ handleGoogleLogin, authError }) {
+  return (
+    <div className="auth-landing">
+      <div className="auth-card">
+        <div
+          className="rounded-circle d-inline-flex align-items-center justify-content-center mb-3 fw-bold"
+          style={{
+            width: 48,
+            height: 48,
+            backgroundColor: "#da7756",
+            color: "#ffffff",
+            fontSize: 20
+          }}
+        >
+          D
+        </div>
+        <h2 className="fw-semibold mb-2" style={{ fontSize: 24, letterSpacing: "-0.02em" }}>
+          Welcome to Dynamo AI
+        </h2>
+        <p className="text-secondary mb-4" style={{ fontSize: 14, lineHeight: 1.5 }}>
+          Sign in to access the custom 33M parameter PyTorch transformer.
+        </p>
+
+        <button
+          className="btn btn-claude w-100 py-2.5 d-inline-flex align-items-center justify-content-center gap-2 mb-3"
+          onClick={handleGoogleLogin}
+          style={{ fontSize: 14, borderRadius: 10 }}
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+          </svg>
+          Continue with Google
+        </button>
+
+        {authError && (
+          <div className="alert alert-warning text-start mt-3" style={{ fontSize: 12, borderRadius: 8 }}>
+            {authError}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function Message({ msg }) {
   const isUser = msg.role === "user";
   const [copied, setCopied] = useState(false);
@@ -129,9 +176,20 @@ export default function ChatApp() {
   const theme = useSystemTheme();
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
+  const [authError, setAuthError] = useState(null);
+
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+
+  // Generation Hyperparameters
+  const [maxTokens, setMaxTokens] = useState(500);
+  const [temperature, setTemperature] = useState(0.7);
+  const [topP, setTopP] = useState(0.85);
+  const [topK, setTopK] = useState(40);
+  const [repetitionPenalty, setRepetitionPenalty] = useState(1.15);
+
   const bottomRef = useRef(null);
   const textareaRef = useRef(null);
   const abortControllerRef = useRef(null);
@@ -157,8 +215,6 @@ export default function ChatApp() {
 
     return () => subscription.unsubscribe();
   }, []);
-
-  const [authError, setAuthError] = useState(null);
 
   const handleGoogleLogin = async () => {
     setAuthError(null);
@@ -212,7 +268,9 @@ export default function ChatApp() {
     try {
       const endpoint = import.meta.env.VITE_ENDPOINT_URL || "http://127.0.0.1:8000/dynamo/";
       const emailParam = user?.email ? `&user_email=${encodeURIComponent(user.email)}` : "";
-      const url = `${endpoint}${endpoint.includes("?") ? "&" : "?"}prompt=${encodeURIComponent(text)}${emailParam}`;
+      const params = `?prompt=${encodeURIComponent(text)}${emailParam}&max_tokens=${maxTokens}&temperature=${temperature}&top_p=${topP}&top_k=${topK}&repetition_penalty=${repetitionPenalty}`;
+      const url = `${endpoint.replace(/\/+$/, "")}/${params}`;
+
       const res = await fetch(url, {
         signal: controller.signal
       });
@@ -330,9 +388,13 @@ export default function ChatApp() {
     );
   }
 
+  // Redirect to Auth Landing if unauthenticated
+  if (!user) {
+    return <AuthLanding handleGoogleLogin={handleGoogleLogin} authError={authError} />;
+  }
+
   return (
     <div className="d-flex flex-column vh-100 position-relative">
-      {/* Minimal Header */}
       <header className="app-header px-4 py-3 d-flex align-items-center justify-content-between">
         <div className="d-flex align-items-center gap-2">
           <span className="fw-semibold" style={{ fontSize: 16, letterSpacing: "-0.01em" }}>
@@ -344,34 +406,18 @@ export default function ChatApp() {
         </div>
 
         <div className="d-flex align-items-center gap-3">
-          {user ? (
-            <div className="d-flex align-items-center gap-2">
-              <span className="text-secondary" style={{ fontSize: 13 }}>
-                {user.email}
-              </span>
-              <button
-                className="btn btn-sm btn-outline-secondary px-2.5 py-1"
-                onClick={handleSignOut}
-                style={{ fontSize: 12, borderRadius: 6 }}
-              >
-                Sign Out
-              </button>
-            </div>
-          ) : (
+          <div className="d-flex align-items-center gap-2">
+            <span className="text-secondary" style={{ fontSize: 13 }}>
+              {user.email}
+            </span>
             <button
-              className="btn btn-sm btn-claude px-3 py-1 d-flex align-items-center gap-2"
-              onClick={handleGoogleLogin}
-              style={{ fontSize: 13, borderRadius: 8 }}
+              className="btn btn-sm btn-outline-secondary px-2.5 py-1"
+              onClick={handleSignOut}
+              style={{ fontSize: 12, borderRadius: 6 }}
             >
-              <svg width="14" height="14" viewBox="0 0 24 24">
-                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
-                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
-              </svg>
-              Sign in with Google
+              Sign Out
             </button>
-          )}
+          </div>
 
           <button
             className="btn btn-sm btn-outline-secondary px-3 py-1"
@@ -384,7 +430,6 @@ export default function ChatApp() {
         </div>
       </header>
 
-      {/* Main Scroll Area */}
       <main id="chat-scroll" className="flex-grow-1 overflow-y-auto px-3 px-md-4 py-4 container-md">
         {messages.length === 0 ? (
           <div className="d-flex flex-column align-items-center justify-content-center h-100 text-center my-auto py-5">
@@ -394,29 +439,6 @@ export default function ChatApp() {
             <p className="text-secondary mb-5" style={{ maxWidth: 460, fontSize: 14, lineHeight: 1.6 }}>
               A decoder-only transformer trained from scratch with PyTorch.
             </p>
-
-            {!user && (
-              <div className="mb-4">
-                <button
-                  className="btn btn-claude px-4 py-2 d-inline-flex align-items-center gap-2"
-                  onClick={handleGoogleLogin}
-                  style={{ fontSize: 14, borderRadius: 10 }}
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24">
-                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
-                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
-                  </svg>
-                  Continue with Google
-                </button>
-                {authError && (
-                  <div className="alert alert-warning mt-3 text-start mx-auto" style={{ maxWidth: 480, fontSize: 13, borderRadius: 10 }}>
-                    {authError}
-                  </div>
-                )}
-              </div>
-            )}
 
             <div className="w-100" style={{ maxWidth: 640 }}>
               <div className="row g-3">
@@ -450,12 +472,124 @@ export default function ChatApp() {
         )}
       </main>
 
-      {/* Input Footer */}
-      <footer className="px-3 px-md-4 pb-4 pt-2 container-md">
+      <footer className="px-3 px-md-4 pb-4 pt-2 container-md position-relative">
+        {/* Settings Sliders Panel */}
+        {showSettings && (
+          <div className="settings-panel mx-auto animate-float-in">
+            <div className="d-flex justify-content-between align-items-center mb-3">
+              <span className="fw-semibold" style={{ fontSize: 14 }}>Generation Settings</span>
+              <button
+                className="btn-close btn-sm"
+                onClick={() => setShowSettings(false)}
+                style={{ fontSize: 10 }}
+              />
+            </div>
+            
+            <div className="mb-3">
+              <div className="d-flex justify-content-between text-secondary mb-1" style={{ fontSize: 12 }}>
+                <span>Max Tokens</span>
+                <span>{maxTokens}</span>
+              </div>
+              <input
+                type="range"
+                className="form-range"
+                min="50"
+                max="2000"
+                step="50"
+                value={maxTokens}
+                onChange={(e) => setMaxTokens(Number(e.target.value))}
+              />
+            </div>
+
+            <div className="mb-3">
+              <div className="d-flex justify-content-between text-secondary mb-1" style={{ fontSize: 12 }}>
+                <span>Temperature</span>
+                <span>{temperature}</span>
+              </div>
+              <input
+                type="range"
+                className="form-range"
+                min="0.1"
+                max="2.0"
+                step="0.05"
+                value={temperature}
+                onChange={(e) => setTemperature(Number(e.target.value))}
+              />
+            </div>
+
+            <div className="mb-3">
+              <div className="d-flex justify-content-between text-secondary mb-1" style={{ fontSize: 12 }}>
+                <span>Top P</span>
+                <span>{topP}</span>
+              </div>
+              <input
+                type="range"
+                className="form-range"
+                min="0.1"
+                max="1.0"
+                step="0.05"
+                value={topP}
+                onChange={(e) => setTopP(Number(e.target.value))}
+              />
+            </div>
+
+            <div className="mb-3">
+              <div className="d-flex justify-content-between text-secondary mb-1" style={{ fontSize: 12 }}>
+                <span>Top K</span>
+                <span>{topK}</span>
+              </div>
+              <input
+                type="range"
+                className="form-range"
+                min="0"
+                max="100"
+                step="1"
+                value={topK}
+                onChange={(e) => setTopK(Number(e.target.value))}
+              />
+            </div>
+
+            <div>
+              <div className="d-flex justify-content-between text-secondary mb-1" style={{ fontSize: 12 }}>
+                <span>Repetition Penalty</span>
+                <span>{repetitionPenalty}</span>
+              </div>
+              <input
+                type="range"
+                className="form-range"
+                min="1.0"
+                max="2.0"
+                step="0.05"
+                value={repetitionPenalty}
+                onChange={(e) => setRepetitionPenalty(Number(e.target.value))}
+              />
+            </div>
+          </div>
+        )}
+
         <div className="chat-input-wrapper p-2 d-flex align-items-end gap-2">
+          <button
+            className={`btn d-flex align-items-center justify-content-center flex-shrink-0 mb-1 ms-1 ${showSettings ? "btn-secondary" : "btn-link text-secondary"}`}
+            onClick={() => setShowSettings(!showSettings)}
+            title="Model Settings"
+            style={{ width: 38, height: 38, borderRadius: 10, padding: 0 }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="4" y1="21" x2="4" y2="14" />
+              <line x1="4" y1="10" x2="4" y2="3" />
+              <line x1="12" y1="21" x2="12" y2="12" />
+              <line x1="12" y1="8" x2="12" y2="3" />
+              <line x1="20" y1="21" x2="20" y2="16" />
+              <line x1="20" y1="12" x2="20" y2="3" />
+              <line x1="1" y1="14" x2="7" y2="14" />
+              <line x1="9" y1="8" x2="15" y2="8" />
+              <line x1="17" y1="16" x2="23" y2="16" />
+            </svg>
+          </button>
+
           <textarea
             ref={textareaRef}
-            className="form-control border-0 bg-transparent shadow-none px-3 py-2"
+            className="form-control border-0 bg-transparent shadow-none px-2 py-2"
             rows={1}
             placeholder="Send a message..."
             value={input}
