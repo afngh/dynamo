@@ -1,3 +1,13 @@
+---
+title: Dynamo Backend
+emoji: 👾
+colorFrom: indigo
+colorTo: purple
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 # dynamo 👾
 
 > A 33M parameter decoder-only transformer built entirely from scratch in PyTorch — served through a Django streaming API and an interactive React frontend.
