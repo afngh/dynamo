@@ -10,7 +10,11 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
+import os
 from pathlib import Path
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,14 +24,20 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-n8c^e(g(_ozxhvi@wl5dy6gd6-8%^zvywn1xn9byypktv4@bvk'
+SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-n8c^e(g(_ozxhvi@wl5dy6gd6-8%^zvywn1xn9byypktv4@bvk")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("DEBUG", "False").lower() in ("true", "1", "t")
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = [host.strip() for host in os.getenv("ALLOWED_HOSTS", "*").split(",") if host.strip()]
 USE_X_FORWARDED_HOST = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# Security Hardening Headers
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = 'DENY'
+
 
 
 
@@ -122,10 +132,10 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-# CORS_ALLOWED_ORIGINS = [
-#     "http://localhost:3000",      # React local development
-#     "http://127.0.0.1:5173",     # Vite local development
-#     "https://yourfrontend.com",  # Production domain
-# ]
+cors_origins_env = os.getenv("CORS_ALLOWED_ORIGINS")
+if cors_origins_env:
+    CORS_ALLOW_ALL_ORIGINS = False
+    CORS_ALLOWED_ORIGINS = [origin.strip() for origin in cors_origins_env.split(",") if origin.strip()]
+else:
+    CORS_ALLOW_ALL_ORIGINS = os.getenv("CORS_ALLOW_ALL", "True").lower() in ("true", "1", "t")
 
-CORS_ALLOW_ALL_ORIGINS = True
