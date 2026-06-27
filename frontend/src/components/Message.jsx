@@ -17,7 +17,8 @@ export default function Message({ msg, user }) {
   };
 
   return (
-    <div className={`d-flex mb-4 ${isUser ? "justify-content-end" : "justify-content-start"}`}>
+    <div className={`d-flex align-items-start mb-4 ${isUser ? "justify-content-end" : "justify-content-start"}`}>
+
       {!isUser && (
         <div
           className="rounded-circle d-flex align-items-center justify-content-center me-3 flex-shrink-0 fw-semibold"

@@ -536,15 +536,14 @@ body {
 
 
 .msg-bubble-bot {
-  background-color: var(--bot-msg-bg);
+  background-color: transparent;
   color: var(--bot-msg-color);
-  padding: 12px 18px;
-  border-radius: 16px;
-  border-bottom-left-radius: 4px;
+  padding: 4px 0;
   font-size: 15px;
   line-height: 1.6;
   word-break: break-word;
 }
+
 
 
 
