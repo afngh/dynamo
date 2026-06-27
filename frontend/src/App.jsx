@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import ReactMarkdown from "react-markdown";
 
 const SUGGESTED_PROMPTS = [
   {
@@ -46,6 +47,7 @@ function TypingLoader() {
 function Message({ msg }) {
   const isUser = msg.role === "user";
   const [copied, setCopied] = useState(false);
+  const [viewMode, setViewMode] = useState("markdown"); // "markdown" or "raw"
 
   const handleCopy = () => {
     navigator.clipboard.writeText(msg.content);
@@ -82,8 +84,14 @@ function Message({ msg }) {
           }}
         >
           {msg.content ? (
-            <div style={{ whitespace: "pre-wrap" }}>
-              {msg.content}
+            <div>
+              {isUser || viewMode === "raw" ? (
+                <span style={{ whitespace: "pre-wrap" }}>{msg.content}</span>
+              ) : (
+                <div className="markdown-content d-inline">
+                  <ReactMarkdown>{msg.content}</ReactMarkdown>
+                </div>
+              )}
               {msg.streaming && <span className="streaming-cursor" />}
             </div>
           ) : msg.streaming ? (
@@ -92,7 +100,16 @@ function Message({ msg }) {
         </div>
 
         {!msg.streaming && msg.content && (
-          <div className="d-flex justify-content-start mt-1">
+          <div className="d-flex align-items-center gap-3 mt-1 fs-12">
+            {!isUser && (
+              <button
+                className="btn btn-sm btn-link p-0 text-secondary text-decoration-none"
+                onClick={() => setViewMode(viewMode === "markdown" ? "raw" : "markdown")}
+                style={{ fontSize: 12, opacity: 0.8 }}
+              >
+                {viewMode === "markdown" ? "Raw Text" : "Markdown Preview"}
+              </button>
+            )}
             <button
               className="btn btn-sm btn-link p-0 text-secondary text-decoration-none"
               onClick={handleCopy}
@@ -114,6 +131,7 @@ export default function ChatApp() {
   const [loading, setLoading] = useState(false);
   const bottomRef = useRef(null);
   const textareaRef = useRef(null);
+  const abortControllerRef = useRef(null);
 
   useEffect(() => {
     document.documentElement.setAttribute("data-bs-theme", theme);
@@ -122,6 +140,13 @@ export default function ChatApp() {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  const stopGeneration = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+  };
 
   const send = async (overridePrompt) => {
     const text = (overridePrompt || input).trim();
@@ -137,8 +162,15 @@ export default function ChatApp() {
     }
     setLoading(true);
 
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     try {
-      const res = await fetch(`http://127.0.0.1:8000/dynamo/?prompt=${encodeURIComponent(text)}`);
+      const endpoint = import.meta.env.VITE_ENDPOINT_URL || "http://127.0.0.1:8000/dynamo/";
+      const url = `${endpoint}${endpoint.includes("?") ? "&" : "?"}prompt=${encodeURIComponent(text)}`;
+      const res = await fetch(url, {
+        signal: controller.signal
+      });
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
 
@@ -201,20 +233,23 @@ export default function ChatApp() {
           } catch {}
         }
       }
-    } catch {
-      setMessages((prev) => {
-        const updated = [...prev];
-        const last = updated[updated.length - 1];
-        if (last && last.role === "assistant") {
-          updated[updated.length - 1] = {
-            ...last,
-            content: "Unable to connect to Dynamo backend. Please ensure the server is running.",
-            streaming: false,
-          };
-        }
-        return updated;
-      });
+    } catch (err) {
+      if (err.name !== "AbortError") {
+        setMessages((prev) => {
+          const updated = [...prev];
+          const last = updated[updated.length - 1];
+          if (last && last.role === "assistant") {
+            updated[updated.length - 1] = {
+              ...last,
+              content: "Unable to connect to Dynamo backend. Please ensure the server is running.",
+              streaming: false,
+            };
+          }
+          return updated;
+        });
+      }
     } finally {
+      abortControllerRef.current = null;
       setMessages((prev) => {
         const updated = [...prev];
         const last = updated[updated.length - 1];
@@ -332,21 +367,42 @@ export default function ChatApp() {
               color: "var(--text-primary)"
             }}
           />
-          <button
-            className="btn btn-claude d-flex align-items-center justify-content-center flex-shrink-0 mb-1 me-1"
-            onClick={() => send()}
-            disabled={!input.trim() || loading}
-            style={{
-              width: 38,
-              height: 38,
-              opacity: !input.trim() || loading ? 0.4 : 1
-            }}
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="12" y1="19" x2="12" y2="5" />
-              <polyline points="5 12 12 5 19 12" />
-            </svg>
-          </button>
+          {loading ? (
+            <button
+              className="btn d-flex align-items-center justify-content-center flex-shrink-0 mb-1 me-1"
+              onClick={stopGeneration}
+              title="Stop generating"
+              style={{
+                width: 38,
+                height: 38,
+                backgroundColor: "var(--accent-color)",
+                color: "#ffffff",
+                border: "none",
+                borderRadius: 10
+              }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                <rect x="4" y="4" width="16" height="16" rx="2" />
+              </svg>
+            </button>
+          ) : (
+            <button
+              className="btn btn-claude d-flex align-items-center justify-content-center flex-shrink-0 mb-1 me-1"
+              onClick={() => send()}
+              disabled={!input.trim()}
+              title="Send message"
+              style={{
+                width: 38,
+                height: 38,
+                opacity: !input.trim() ? 0.4 : 1
+              }}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="19" x2="12" y2="5" />
+                <polyline points="5 12 12 5 19 12" />
+              </svg>
+            </button>
+          )}
         </div>
         <div className="text-center text-secondary mt-2" style={{ fontSize: 11, opacity: 0.75 }}>
           Dynamo may produce inaccurate information about people, places, or facts.

@@ -11,7 +11,7 @@ def _dynamo(prompt :str):
 
     response_generator = model.create(
         input=prompt,
-        max_tokens=200,
+        max_tokens=2000,
         temperature=0.6,
         top_k=40,
         top_p=0.85,
