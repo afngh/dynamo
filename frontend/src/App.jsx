@@ -1,6 +1,10 @@
 import { useState, useEffect, useRef } from "react";
-import ReactMarkdown from "react-markdown";
 import { supabase } from "./supabaseClient";
+import TypingLoader from "./components/TypingLoader";
+import AuthLanding from "./components/AuthLanding";
+import Message from "./components/Message";
+import SettingsPanel from "./components/SettingsPanel";
+import Header from "./components/Header";
 
 const SUGGESTED_PROMPTS = [
   {
@@ -35,143 +39,6 @@ function useSystemTheme() {
   return theme;
 }
 
-function TypingLoader() {
-  return (
-    <div className="typing-loader">
-      <span />
-      <span />
-      <span />
-    </div>
-  );
-}
-
-function AuthLanding({ handleGoogleLogin, authError }) {
-  return (
-    <div className="auth-landing">
-      <div className="auth-card">
-        <div
-          className="rounded-circle d-inline-flex align-items-center justify-content-center mb-3 fw-bold"
-          style={{
-            width: 48,
-            height: 48,
-            backgroundColor: "#da7756",
-            color: "#ffffff",
-            fontSize: 20
-          }}
-        >
-          D
-        </div>
-        <h2 className="fw-semibold mb-2" style={{ fontSize: 24, letterSpacing: "-0.02em" }}>
-          Welcome to Dynamo AI
-        </h2>
-        <p className="text-secondary mb-4" style={{ fontSize: 14, lineHeight: 1.5 }}>
-          Sign in to access the custom 33M parameter PyTorch transformer.
-        </p>
-
-        <button
-          className="btn btn-claude w-100 py-2.5 d-inline-flex align-items-center justify-content-center gap-2 mb-3"
-          onClick={handleGoogleLogin}
-          style={{ fontSize: 14, borderRadius: 10 }}
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24">
-            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
-            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
-          </svg>
-          Continue with Google
-        </button>
-
-        {authError && (
-          <div className="alert alert-warning text-start mt-3" style={{ fontSize: 12, borderRadius: 8 }}>
-            {authError}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function Message({ msg }) {
-  const isUser = msg.role === "user";
-  const [copied, setCopied] = useState(false);
-  const [viewMode, setViewMode] = useState("markdown");
-
-  const handleCopy = () => {
-    navigator.clipboard.writeText(msg.content);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  return (
-    <div className={`d-flex mb-4 ${isUser ? "justify-content-end" : "justify-content-start"}`}>
-      {!isUser && (
-        <div
-          className="rounded-circle d-flex align-items-center justify-content-center me-3 flex-shrink-0 fw-semibold"
-          style={{
-            width: 32,
-            height: 32,
-            backgroundColor: "#da7756",
-            color: "#ffffff",
-            fontSize: 13,
-            letterSpacing: "-0.02em"
-          }}
-        >
-          D
-        </div>
-      )}
-      <div style={{ maxWidth: "82%" }}>
-        <div
-          className="px-3.5 py-2.5 rounded-3"
-          style={{
-            backgroundColor: isUser ? "var(--user-msg-bg)" : "var(--bot-msg-bg)",
-            color: isUser ? "var(--user-msg-color)" : "var(--bot-msg-color)",
-            fontSize: 15,
-            lineHeight: 1.6,
-            wordBreak: "break-word"
-          }}
-        >
-          {msg.content ? (
-            <div>
-              {isUser || viewMode === "raw" ? (
-                <span style={{ whitespace: "pre-wrap" }}>{msg.content}</span>
-              ) : (
-                <div className="markdown-content d-inline">
-                  <ReactMarkdown>{msg.content}</ReactMarkdown>
-                </div>
-              )}
-              {msg.streaming && <span className="streaming-cursor" />}
-            </div>
-          ) : msg.streaming ? (
-            <TypingLoader />
-          ) : null}
-        </div>
-
-        {!msg.streaming && msg.content && (
-          <div className="d-flex align-items-center gap-3 mt-1 fs-12">
-            {!isUser && (
-              <button
-                className="btn btn-sm btn-link p-0 text-secondary text-decoration-none"
-                onClick={() => setViewMode(viewMode === "markdown" ? "raw" : "markdown")}
-                style={{ fontSize: 12, opacity: 0.8 }}
-              >
-                {viewMode === "markdown" ? "Raw Text" : "Markdown Preview"}
-              </button>
-            )}
-            <button
-              className="btn btn-sm btn-link p-0 text-secondary text-decoration-none"
-              onClick={handleCopy}
-              style={{ fontSize: 12, opacity: 0.75 }}
-            >
-              {copied ? "Copied" : "Copy"}
-            </button>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
 export default function ChatApp() {
   const theme = useSystemTheme();
   const [user, setUser] = useState(null);
@@ -183,7 +50,6 @@ export default function ChatApp() {
   const [loading, setLoading] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
 
-  // Generation Hyperparameters
   const [maxTokens, setMaxTokens] = useState(500);
   const [temperature, setTemperature] = useState(0.7);
   const [topP, setTopP] = useState(0.85);
@@ -388,47 +254,18 @@ export default function ChatApp() {
     );
   }
 
-  // Redirect to Auth Landing if unauthenticated
   if (!user) {
     return <AuthLanding handleGoogleLogin={handleGoogleLogin} authError={authError} />;
   }
 
   return (
     <div className="d-flex flex-column vh-100 position-relative">
-      <header className="app-header px-4 py-3 d-flex align-items-center justify-content-between">
-        <div className="d-flex align-items-center gap-2">
-          <span className="fw-semibold" style={{ fontSize: 16, letterSpacing: "-0.01em" }}>
-            Dynamo AI
-          </span>
-          <span className="text-secondary" style={{ fontSize: 13 }}>
-            33M Parameter Model
-          </span>
-        </div>
-
-        <div className="d-flex align-items-center gap-3">
-          <div className="d-flex align-items-center gap-2">
-            <span className="text-secondary" style={{ fontSize: 13 }}>
-              {user.email}
-            </span>
-            <button
-              className="btn btn-sm btn-outline-secondary px-2.5 py-1"
-              onClick={handleSignOut}
-              style={{ fontSize: 12, borderRadius: 6 }}
-            >
-              Sign Out
-            </button>
-          </div>
-
-          <button
-            className="btn btn-sm btn-outline-secondary px-3 py-1"
-            onClick={clearChat}
-            disabled={messages.length === 0}
-            style={{ fontSize: 13, borderRadius: 8 }}
-          >
-            Clear
-          </button>
-        </div>
-      </header>
+      <Header
+        user={user}
+        handleSignOut={handleSignOut}
+        clearChat={clearChat}
+        disabledClear={messages.length === 0}
+      />
 
       <main id="chat-scroll" className="flex-grow-1 overflow-y-auto px-3 px-md-4 py-4 container-md">
         {messages.length === 0 ? (
@@ -473,98 +310,20 @@ export default function ChatApp() {
       </main>
 
       <footer className="px-3 px-md-4 pb-4 pt-2 container-md position-relative">
-        {/* Settings Sliders Panel */}
         {showSettings && (
-          <div className="settings-panel mx-auto animate-float-in">
-            <div className="d-flex justify-content-between align-items-center mb-3">
-              <span className="fw-semibold" style={{ fontSize: 14 }}>Generation Settings</span>
-              <button
-                className="btn-close btn-sm"
-                onClick={() => setShowSettings(false)}
-                style={{ fontSize: 10 }}
-              />
-            </div>
-            
-            <div className="mb-3">
-              <div className="d-flex justify-content-between text-secondary mb-1" style={{ fontSize: 12 }}>
-                <span>Max Tokens</span>
-                <span>{maxTokens}</span>
-              </div>
-              <input
-                type="range"
-                className="form-range"
-                min="50"
-                max="2000"
-                step="50"
-                value={maxTokens}
-                onChange={(e) => setMaxTokens(Number(e.target.value))}
-              />
-            </div>
-
-            <div className="mb-3">
-              <div className="d-flex justify-content-between text-secondary mb-1" style={{ fontSize: 12 }}>
-                <span>Temperature</span>
-                <span>{temperature}</span>
-              </div>
-              <input
-                type="range"
-                className="form-range"
-                min="0.1"
-                max="2.0"
-                step="0.05"
-                value={temperature}
-                onChange={(e) => setTemperature(Number(e.target.value))}
-              />
-            </div>
-
-            <div className="mb-3">
-              <div className="d-flex justify-content-between text-secondary mb-1" style={{ fontSize: 12 }}>
-                <span>Top P</span>
-                <span>{topP}</span>
-              </div>
-              <input
-                type="range"
-                className="form-range"
-                min="0.1"
-                max="1.0"
-                step="0.05"
-                value={topP}
-                onChange={(e) => setTopP(Number(e.target.value))}
-              />
-            </div>
-
-            <div className="mb-3">
-              <div className="d-flex justify-content-between text-secondary mb-1" style={{ fontSize: 12 }}>
-                <span>Top K</span>
-                <span>{topK}</span>
-              </div>
-              <input
-                type="range"
-                className="form-range"
-                min="0"
-                max="100"
-                step="1"
-                value={topK}
-                onChange={(e) => setTopK(Number(e.target.value))}
-              />
-            </div>
-
-            <div>
-              <div className="d-flex justify-content-between text-secondary mb-1" style={{ fontSize: 12 }}>
-                <span>Repetition Penalty</span>
-                <span>{repetitionPenalty}</span>
-              </div>
-              <input
-                type="range"
-                className="form-range"
-                min="1.0"
-                max="2.0"
-                step="0.05"
-                value={repetitionPenalty}
-                onChange={(e) => setRepetitionPenalty(Number(e.target.value))}
-              />
-            </div>
-          </div>
+          <SettingsPanel
+            maxTokens={maxTokens}
+            setMaxTokens={setMaxTokens}
+            temperature={temperature}
+            setTemperature={setTemperature}
+            topP={topP}
+            setTopP={setTopP}
+            topK={topK}
+            setTopK={setTopK}
+            repetitionPenalty={repetitionPenalty}
+            setRepetitionPenalty={setRepetitionPenalty}
+            onClose={() => setShowSettings(false)}
+          />
         )}
 
         <div className="chat-input-wrapper p-2 d-flex align-items-end gap-2">
