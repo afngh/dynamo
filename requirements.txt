@@ -4,3 +4,4 @@ tiktoken
 huggingface_hub
 dotenv
 django
+markdown
