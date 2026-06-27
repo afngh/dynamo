@@ -6,8 +6,9 @@ class dynamo:
     def __init__(self):
         load_dotenv()
 
-        self.model_path = os.getenv("MODEL_PATH")
-        self.config_path = os.getenv("CONFIG_PATH")
+        self.model_path = os.getenv("MODEL_PATH", "bin/model/model.pt")
+        self.config_path = os.getenv("CONFIG_PATH", "bin/data/config.pkl")
+
     
         self.handler = PretrainedHandler(self.model_path, self.config_path)
 
