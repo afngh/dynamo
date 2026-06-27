@@ -22,9 +22,8 @@ export default function AuthLanding({ handleGoogleLogin, authError }) {
         </p>
 
         <button
-          className="btn btn-claude w-100 py-2.5 d-inline-flex align-items-center justify-content-center gap-2 mb-3"
+          className="btn-google mb-3"
           onClick={handleGoogleLogin}
-          style={{ fontSize: 14, borderRadius: 10 }}
         >
           <svg width="18" height="18" viewBox="0 0 24 24">
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -34,6 +33,7 @@ export default function AuthLanding({ handleGoogleLogin, authError }) {
           </svg>
           Continue with Google
         </button>
+
 
         {authError && (
           <div className="alert alert-warning text-start mt-3" style={{ fontSize: 12, borderRadius: 8 }}>
