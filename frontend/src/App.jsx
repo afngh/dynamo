@@ -140,8 +140,14 @@ export default function ChatApp() {
       const res = await fetch(url, {
         signal: controller.signal
       });
+
+      if (!res.ok) {
+        throw new Error(`Server responded with status ${res.status}`);
+      }
+
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
+
 
       let buffer = "";
 

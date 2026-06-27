@@ -33,21 +33,13 @@ export default function Message({ msg, user }) {
           D
         </div>
       )}
+
       <div style={{ maxWidth: "82%" }}>
-        <div
-          className="px-3.5 py-2.5 rounded-3"
-          style={{
-            backgroundColor: isUser ? "var(--user-msg-bg)" : "var(--bot-msg-bg)",
-            color: isUser ? "var(--user-msg-color)" : "var(--bot-msg-color)",
-            fontSize: 15,
-            lineHeight: 1.6,
-            wordBreak: "break-word"
-          }}
-        >
+        <div className={isUser ? "msg-bubble-user" : "msg-bubble-bot"}>
           {msg.content ? (
             <div>
               {isUser || viewMode === "raw" ? (
-                <span style={{ whitespace: "pre-wrap" }}>{msg.content}</span>
+                <span style={{ whiteSpace: "pre-wrap" }}>{msg.content}</span>
               ) : (
                 <div className="markdown-content d-inline">
                   <ReactMarkdown>{msg.content}</ReactMarkdown>
@@ -61,7 +53,7 @@ export default function Message({ msg, user }) {
         </div>
 
         {!msg.streaming && msg.content && (
-          <div className="d-flex align-items-center gap-3 mt-1 fs-12">
+          <div className={`d-flex align-items-center gap-3 mt-1 fs-12 ${isUser ? "justify-content-end" : "justify-content-start"}`}>
             {!isUser && (
               <button
                 className="btn btn-sm btn-link p-0 text-secondary text-decoration-none"
@@ -110,3 +102,4 @@ export default function Message({ msg, user }) {
     </div>
   );
 }
+
