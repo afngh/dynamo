@@ -1,25 +1,20 @@
 import { useState, useEffect, useRef } from "react";
 
-const STORAGE_KEY = "dynamo_chat_history";
-
 const SUGGESTED_PROMPTS = [
   {
     title: "Transformer Architecture",
-    desc: "Explain self-attention and positional encodings",
-    prompt: "Can you explain how causal self-attention works in a decoder-only transformer?",
-    icon: "⚡"
-  },
-  {
-    title: "Creative Storytelling",
-    desc: "Generate an intriguing futuristic tale",
-    prompt: "Once upon a time in a sprawling cybernetic metropolis...",
-    icon: "✨"
+    desc: "Explain causal self-attention in a decoder-only model",
+    prompt: "Can you explain how causal self-attention works in a decoder-only transformer?"
   },
   {
     title: "PyTorch Deep Learning",
-    desc: "Discuss neural network training",
-    prompt: "How does RMSNorm differ from LayerNorm during training stability?",
-    icon: "🧠"
+    desc: "Compare RMSNorm vs LayerNorm during pretraining",
+    prompt: "How does RMSNorm differ from LayerNorm during training stability?"
+  },
+  {
+    title: "Code Generation",
+    desc: "Write a simple PyTorch matrix multiplication example",
+    prompt: "Show me a basic example of tensor matrix multiplication in PyTorch."
   }
 ];
 
@@ -38,6 +33,16 @@ function useSystemTheme() {
   return theme;
 }
 
+function TypingLoader() {
+  return (
+    <div className="typing-loader">
+      <span />
+      <span />
+      <span />
+    </div>
+  );
+}
+
 function Message({ msg }) {
   const isUser = msg.role === "user";
   const [copied, setCopied] = useState(false);
@@ -49,80 +54,62 @@ function Message({ msg }) {
   };
 
   return (
-    <div className={`d-flex mb-4 animate-float-in ${isUser ? "justify-content-end" : "justify-content-start"}`}>
+    <div className={`d-flex mb-4 ${isUser ? "justify-content-end" : "justify-content-start"}`}>
       {!isUser && (
         <div
-          className="rounded-circle avatar-glow d-flex align-items-center justify-content-center me-3 flex-shrink-0"
-          style={{ width: 36, height: 36, color: "#fff", fontWeight: 700, fontSize: 15 }}
+          className="rounded-circle d-flex align-items-center justify-content-center me-3 flex-shrink-0 fw-semibold"
+          style={{
+            width: 32,
+            height: 32,
+            backgroundColor: "#da7756",
+            color: "#ffffff",
+            fontSize: 13,
+            letterSpacing: "-0.02em"
+          }}
         >
           D
         </div>
       )}
-      <div
-        className="position-relative group-action"
-        style={{ maxWidth: "78%" }}
-      >
+      <div style={{ maxWidth: "82%" }}>
         <div
-          className={`px-4 py-3 ${isUser ? "rounded-4" : "glass-card"}`}
+          className="px-3.5 py-2.5 rounded-3"
           style={{
-            background: isUser ? "var(--user-msg-bg)" : "var(--bot-msg-bg)",
+            backgroundColor: isUser ? "var(--user-msg-bg)" : "var(--bot-msg-bg)",
             color: isUser ? "var(--user-msg-color)" : "var(--bot-msg-color)",
-            border: isUser ? "none" : "1px solid var(--bot-msg-border)",
-            borderRadius: isUser ? "20px 20px 4px 20px" : "20px 20px 20px 4px",
             fontSize: 15,
-            lineHeight: 1.65,
-            wordBreak: "break-word",
-            boxShadow: isUser ? "0 4px 15px rgba(108, 99, 255, 0.3)" : "var(--glass-shadow)"
+            lineHeight: 1.6,
+            wordBreak: "break-word"
           }}
         >
-          <div style={{ whitespace: "pre-wrap" }}>{msg.content}</div>
-          {msg.streaming && <span className="streaming-cursor" />}
+          {msg.content ? (
+            <div style={{ whitespace: "pre-wrap" }}>
+              {msg.content}
+              {msg.streaming && <span className="streaming-cursor" />}
+            </div>
+          ) : msg.streaming ? (
+            <TypingLoader />
+          ) : null}
         </div>
 
         {!msg.streaming && msg.content && (
-          <div
-            className={`position-absolute top-0 ${isUser ? "start-0 translate-middle-x" : "end-0 translate-middle-x"} me-2 mt-1 opacity-75`}
-            style={{ zIndex: 2 }}
-          >
+          <div className="d-flex justify-content-start mt-1">
             <button
-              className="btn btn-sm btn-link p-1 text-secondary text-decoration-none"
+              className="btn btn-sm btn-link p-0 text-secondary text-decoration-none"
               onClick={handleCopy}
-              title="Copy text"
-              style={{ fontSize: 12 }}
+              style={{ fontSize: 12, opacity: 0.75 }}
             >
-              {copied ? "✓ Copied" : "📋"}
+              {copied ? "Copied" : "Copy"}
             </button>
           </div>
         )}
       </div>
-      {isUser && (
-        <div
-          className="rounded-circle d-flex align-items-center justify-content-center ms-3 flex-shrink-0"
-          style={{
-            width: 36,
-            height: 36,
-            background: "rgba(148, 163, 184, 0.2)",
-            color: "var(--text-primary)",
-            fontWeight: 600,
-            fontSize: 14
-          }}
-        >
-          U
-        </div>
-      )}
     </div>
   );
 }
 
 export default function ChatApp() {
   const theme = useSystemTheme();
-  const [messages, setMessages] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-    } catch {
-      return [];
-    }
-  });
+  const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const bottomRef = useRef(null);
@@ -134,10 +121,6 @@ export default function ChatApp() {
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
-
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
   }, [messages]);
 
   const send = async (overridePrompt) => {
@@ -156,29 +139,38 @@ export default function ChatApp() {
 
     try {
       const res = await fetch(`http://127.0.0.1:8000/dynamo/?prompt=${encodeURIComponent(text)}`);
-
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
 
-      outer: while (true) {
+      let buffer = "";
+
+      while (true) {
         const { done, value } = await reader.read();
         if (done) break;
 
-        const lines = decoder.decode(value).split("\n\n").filter((l) => l.startsWith("data: "));
+        buffer += decoder.decode(value, { stream: true });
+        const parts = buffer.split("\n");
+        buffer = parts.pop() || "";
 
-        for (const line of lines) {
-          const data = line.replace("data: ", "").trim();
-          if (data === "[DONE]") break outer;
+        for (const line of parts) {
+          const trimmed = line.trim();
+          if (!trimmed || !trimmed.startsWith("data: ")) continue;
+
+          const data = trimmed.slice(6).trim();
+          if (data === "[DONE]") break;
 
           try {
             const parsed = JSON.parse(data);
-            if (parsed.token) {
+            if (parsed.token !== undefined) {
               setMessages((prev) => {
                 const updated = [...prev];
-                updated[updated.length - 1] = {
-                  ...updated[updated.length - 1],
-                  content: updated[updated.length - 1].content + parsed.token,
-                };
+                const last = updated[updated.length - 1];
+                if (last && last.role === "assistant") {
+                  updated[updated.length - 1] = {
+                    ...last,
+                    content: last.content + parsed.token,
+                  };
+                }
                 return updated;
               });
             }
@@ -188,25 +180,52 @@ export default function ChatApp() {
         }
       }
 
-      setMessages((prev) => {
-        const updated = [...prev];
-        updated[updated.length - 1] = {
-          ...updated[updated.length - 1],
-          streaming: false,
-        };
-        return updated;
-      });
+      if (buffer.trim().startsWith("data: ")) {
+        const data = buffer.trim().slice(6).trim();
+        if (data !== "[DONE]") {
+          try {
+            const parsed = JSON.parse(data);
+            if (parsed.token !== undefined) {
+              setMessages((prev) => {
+                const updated = [...prev];
+                const last = updated[updated.length - 1];
+                if (last && last.role === "assistant") {
+                  updated[updated.length - 1] = {
+                    ...last,
+                    content: last.content + parsed.token,
+                  };
+                }
+                return updated;
+              });
+            }
+          } catch {}
+        }
+      }
     } catch {
       setMessages((prev) => {
         const updated = [...prev];
-        updated[updated.length - 1] = {
-          role: "assistant",
-          content: "Unable to connect to Dynamo API. Please ensure the Django backend server is running on http://127.0.0.1:8000.",
-          streaming: false,
-        };
+        const last = updated[updated.length - 1];
+        if (last && last.role === "assistant") {
+          updated[updated.length - 1] = {
+            ...last,
+            content: "Unable to connect to Dynamo backend. Please ensure the server is running.",
+            streaming: false,
+          };
+        }
         return updated;
       });
     } finally {
+      setMessages((prev) => {
+        const updated = [...prev];
+        const last = updated[updated.length - 1];
+        if (last && last.role === "assistant") {
+          updated[updated.length - 1] = {
+            ...last,
+            streaming: false,
+          };
+        }
+        return updated;
+      });
       setLoading(false);
       textareaRef.current?.focus();
     }
@@ -221,86 +240,57 @@ export default function ChatApp() {
 
   const clearChat = () => {
     setMessages([]);
-    localStorage.removeItem(STORAGE_KEY);
   };
 
   return (
-    <div className="d-flex flex-column vh-100 position-relative overflow-hidden">
-      {/* Glass Header */}
-      <header className="glass-header px-4 py-3 d-flex align-items-center justify-content-between position-relative z-3">
-        <div className="d-flex align-items-center gap-3">
-          <div className="rounded-circle avatar-glow d-flex align-items-center justify-content-center" style={{ width: 40, height: 40 }}>
-            <span style={{ color: "#fff", fontWeight: 700, fontSize: 18, fontFamily: "var(--font-heading)" }}>D</span>
-          </div>
-          <div>
-            <div className="d-flex align-items-center gap-2">
-              <span className="font-heading fw-bold" style={{ fontSize: 17, letterSpacing: "-0.01em" }}>
-                dynamo
-              </span>
-              <span className="badge-dynamo">33M Decoder</span>
-              <span className="d-inline-flex align-items-center gap-1 text-success" style={{ fontSize: 12, fontWeight: 500 }}>
-                <span className="rounded-circle bg-success d-inline-block" style={{ width: 6, height: 6, animation: "pulse-glow 2s infinite" }} />
-                Online
-              </span>
-            </div>
-            <div className="text-secondary" style={{ fontSize: 12, marginTop: 1 }}>
-              Custom PyTorch Transformer Served via Django
-            </div>
-          </div>
+    <div className="d-flex flex-column vh-100 position-relative">
+      {/* Minimal Header */}
+      <header className="app-header px-4 py-3 d-flex align-items-center justify-content-between">
+        <div className="d-flex align-items-center gap-2">
+          <span className="fw-semibold" style={{ fontSize: 16, letterSpacing: "-0.01em" }}>
+            Dynamo AI
+          </span>
+          <span className="text-secondary" style={{ fontSize: 13 }}>
+            33M Parameter Model
+          </span>
         </div>
 
-        <div className="d-flex align-items-center gap-2">
-          <button
-            className="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1.5 d-flex align-items-center gap-1.5"
-            onClick={clearChat}
-            disabled={messages.length === 0}
-            style={{ fontSize: 13, transition: "all 0.2s" }}
-          >
-            <span>🗑️</span> Clear Chat
-          </button>
-        </div>
+        <button
+          className="btn btn-sm btn-outline-secondary px-3 py-1"
+          onClick={clearChat}
+          disabled={messages.length === 0}
+          style={{ fontSize: 13, borderRadius: 8 }}
+        >
+          Clear
+        </button>
       </header>
 
-      {/* Main Content Scroll Area */}
-      <main id="chat-scroll" className="flex-grow-1 overflow-y-auto px-3 px-md-5 py-4 container-lg">
+      {/* Main Scroll Area */}
+      <main id="chat-scroll" className="flex-grow-1 overflow-y-auto px-3 px-md-4 py-4 container-md">
         {messages.length === 0 ? (
-          <div className="d-flex flex-column align-items-center justify-content-center h-100 text-center my-auto py-5 animate-float-in">
-            <div
-              className="rounded-circle avatar-glow d-flex align-items-center justify-content-center mb-4"
-              style={{ width: 72, height: 72 }}
-            >
-              <span style={{ fontSize: 36 }}>👾</span>
-            </div>
-            <h2 className="font-heading fw-bold mb-2" style={{ fontSize: 28 }}>
-              Experience Dynamo AI
-            </h2>
-            <p className="text-secondary mb-5" style={{ maxWidth: 480, fontSize: 15, lineHeight: 1.6 }}>
-              A 33M parameter decoder-only transformer built from scratch in PyTorch with SwiGLU activations and causal self-attention.
+          <div className="d-flex flex-column align-items-center justify-content-center h-100 text-center my-auto py-5">
+            <h1 className="fw-semibold mb-2" style={{ fontSize: 26, letterSpacing: "-0.02em" }}>
+              How can Dynamo help you today?
+            </h1>
+            <p className="text-secondary mb-5" style={{ maxWidth: 460, fontSize: 14, lineHeight: 1.6 }}>
+              A decoder-only transformer trained from scratch with PyTorch.
             </p>
 
-            <div className="w-100" style={{ maxWidth: 720 }}>
-              <div className="text-start text-secondary mb-3 px-1 fw-medium" style={{ fontSize: 13, letterSpacing: "0.03em", textTransform: "uppercase" }}>
-                Suggested Prompts
-              </div>
+            <div className="w-100" style={{ maxWidth: 640 }}>
               <div className="row g-3">
                 {SUGGESTED_PROMPTS.map((item, idx) => (
                   <div key={idx} className="col-12 col-md-4">
                     <div
-                      className="glass-card p-3 h-100 text-start cursor-pointer d-flex flex-column justify-content-between"
-                      style={{ cursor: "pointer" }}
+                      className="prompt-card h-100 text-start d-flex flex-column justify-content-between"
                       onClick={() => send(item.prompt)}
                     >
                       <div>
-                        <div className="fs-4 mb-2">{item.icon}</div>
                         <div className="fw-semibold mb-1" style={{ fontSize: 14 }}>
                           {item.title}
                         </div>
                         <div className="text-secondary" style={{ fontSize: 12, lineHeight: 1.4 }}>
                           {item.desc}
                         </div>
-                      </div>
-                      <div className="mt-3 text-end" style={{ color: "var(--badge-color)", fontSize: 12, fontWeight: 600 }}>
-                        Try →
                       </div>
                     </div>
                   </div>
@@ -318,14 +308,14 @@ export default function ChatApp() {
         )}
       </main>
 
-      {/* Input Section */}
-      <footer className="px-3 px-md-5 pb-4 pt-2 position-relative z-3 container-lg">
-        <div className="glass-input-container p-2 d-flex align-items-end gap-2">
+      {/* Input Footer */}
+      <footer className="px-3 px-md-4 pb-4 pt-2 container-md">
+        <div className="chat-input-wrapper p-2 d-flex align-items-end gap-2">
           <textarea
             ref={textareaRef}
             className="form-control border-0 bg-transparent shadow-none px-3 py-2"
             rows={1}
-            placeholder="Ask Dynamo anything..."
+            placeholder="Send a message..."
             value={input}
             onChange={(e) => {
               setInput(e.target.value);
@@ -343,28 +333,23 @@ export default function ChatApp() {
             }}
           />
           <button
-            className="btn btn-dynamo-primary d-flex align-items-center justify-content-center flex-shrink-0 mb-1 me-1"
+            className="btn btn-claude d-flex align-items-center justify-content-center flex-shrink-0 mb-1 me-1"
             onClick={() => send()}
             disabled={!input.trim() || loading}
             style={{
-              width: 44,
-              height: 44,
-              borderRadius: 14,
+              width: 38,
+              height: 38,
               opacity: !input.trim() || loading ? 0.4 : 1
             }}
           >
-            {loading ? (
-              <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" />
-            ) : (
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="22" y1="2" x2="11" y2="13" />
-                <polygon points="22 2 15 22 11 13 2 9 22 2" />
-              </svg>
-            )}
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="19" x2="12" y2="5" />
+              <polyline points="5 12 12 5 19 12" />
+            </svg>
           </button>
         </div>
-        <div className="text-center text-secondary mt-2" style={{ fontSize: 12, opacity: 0.8 }}>
-          Dynamo 33M • Nucleus Sampling (top_p=0.85, top_k=40) • Press Enter to send, Shift+Enter for new line
+        <div className="text-center text-secondary mt-2" style={{ fontSize: 11, opacity: 0.75 }}>
+          Dynamo may produce inaccurate information about people, places, or facts.
         </div>
       </footer>
     </div>

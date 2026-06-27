@@ -21,7 +21,6 @@ class Generator:
 
         if stream:
             def generator():
-                yield prompt
                 prev_text = ""
                 with torch.no_grad():
                     for i in range(self.max_tokens):

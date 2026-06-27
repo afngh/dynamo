@@ -5,7 +5,7 @@ from main.load import dynamo
 import markdown
 import json
 
-async def _dynamo(prompt :str):
+def _dynamo(prompt :str):
     model = dynamo()
     model.Client()
 
