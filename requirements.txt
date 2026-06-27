@@ -2,7 +2,8 @@ torch
 rich
 tiktoken
 huggingface_hub
-dotenv
+python-dotenv
 django
+django-cors-headers
 markdown
 supabase

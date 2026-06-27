@@ -8,29 +8,31 @@ Thanks for your interest in contributing. Before you do anything, read this.
 
 This repository exists for one reason — to understand how transformers work by building every part by hand. That goal shapes every rule below.
 
-**No AI-generated code. No exceptions.**
+**AI Code Policy: Frontend Only**
 
-Not GitHub Copilot. Not Claude. Not ChatGPT. Not Cursor, Tabnine, or any other agent or autocomplete tool that writes code for you. If you didn't type it and understand every line of it, it doesn't belong here.
+AI assistants, autocomplete tools, and autonomous agents (e.g., Antigravity, GitHub Copilot, Cursor, ChatGPT, Claude) are **permitted strictly for frontend development** (`frontend/` directory).
 
-This isn't about gatekeeping — it's about the point of the project. A transformer block you copy-pasted from an AI suggestion teaches you nothing. A transformer block you wrote, broke, debugged, and fixed teaches you everything. That's the only kind of contribution this repo accepts.
+However, **AI-generated code is strictly prohibited for backend and model code** (`main/`, `api/`, `stream/`, model configs, and transformer blocks).
+
+This repository exists to learn and build transformer models from scratch. Model architecture and backend code must be written, debugged, and understood by human contributors hands-on. For detailed agent guidelines and operational boundaries, see [AGENTS.md](file:///home/shaikafnan/dynamo/dynamo/AGENTS.md).
 
 ---
 
 ## What you can contribute
 
-- Bug fixes — genuine bugs, with an explanation of why it's wrong and what the correct behavior should be
-- Architecture improvements — only if you understand the math behind the change and can explain it
+- Frontend UI/UX enhancements, React components, and styling (AI tools permitted here)
+- Bug fixes in backend or frontend — genuine bugs with explanation
+- Architecture improvements — written and understood by hand
 - New training datasets or data cleaning scripts
-- Documentation improvements — clearer explanations, better comments, corrected errors in the README
-- New features that fit the "from scratch" philosophy — no wrapping existing library components and calling it an implementation
+- Documentation improvements — clearer explanations, README corrections
 
 ---
 
 ## What you cannot contribute
 
-- Code written or completed by any AI assistant or agent
-- Wrapper classes around Hugging Face Transformers, PyTorch Lightning, or similar libraries
-- Anything you can't explain line by line if asked
+- Backend, API, or model code written or completed by any AI assistant or agent
+- Wrapper classes around Hugging Face Transformers, PyTorch Lightning, or similar libraries for core model logic
+- Anything in the model architecture you cannot explain line by line
 - Pretrained weights or checkpoints from other models
 
 ---
