@@ -1,13 +1,3 @@
----
-title: Dynamo Backend
-emoji: 👾
-colorFrom: indigo
-colorTo: purple
-sdk: docker
-app_port: 7860
-pinned: false
----
-
 # dynamo 👾
 
 > A 33M parameter decoder-only transformer built entirely from scratch in PyTorch — served through a Django streaming API and an interactive React frontend.
@@ -115,6 +105,7 @@ Checkpoints live on Hugging Face Hub (model files are ~400MB — too large for G
 ## Inference & Streaming API
 
 ### CLI Inference
+
 ```python
 from main.generator_config._load_config_and_model import PretrainedHandler
 
@@ -126,6 +117,7 @@ print(client.generate_response("to be or not to be"))
 ```
 
 ### Server-Sent Events (SSE) Streaming
+
 The Django backend streams tokens in real-time over HTTP GET requests at `/dynamo/`:
 
 ```python
