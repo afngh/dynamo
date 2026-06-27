@@ -284,32 +284,32 @@ export default function ChatApp() {
             </p>
 
             <div className="w-100" style={{ maxWidth: 640 }}>
-              <div className="row g-3">
+              <div className="prompt-grid">
                 {SUGGESTED_PROMPTS.map((item, idx) => (
-                  <div key={idx} className="col-12 col-md-4">
-                    <div
-                      className="prompt-card h-100 text-start d-flex flex-column justify-content-between"
-                      onClick={() => send(item.prompt)}
-                    >
-                      <div>
-                        <div className="d-flex align-items-center justify-content-between mb-1">
-                          <div className="fw-semibold" style={{ fontSize: 14 }}>
-                            {item.title}
-                          </div>
-                          <svg className="prompt-card-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                            <line x1="5" y1="12" x2="19" y2="12" />
-                            <polyline points="12 5 19 12 12 19" />
-                          </svg>
+                  <div
+                    key={idx}
+                    className="prompt-card text-start d-flex flex-column justify-content-between"
+                    onClick={() => send(item.prompt)}
+                  >
+                    <div>
+                      <div className="d-flex align-items-center justify-content-between mb-1">
+                        <div className="fw-semibold" style={{ fontSize: 14 }}>
+                          {item.title}
                         </div>
-                        <div className="text-secondary" style={{ fontSize: 12, lineHeight: 1.45 }}>
-                          {item.desc}
-                        </div>
+                        <svg className="prompt-card-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <line x1="5" y1="12" x2="19" y2="12" />
+                          <polyline points="12 5 19 12 12 19" />
+                        </svg>
+                      </div>
+                      <div className="text-secondary" style={{ fontSize: 12, lineHeight: 1.45 }}>
+                        {item.desc}
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
             </div>
+
           </div>
         ) : (
           <div className="py-2">
