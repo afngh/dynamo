@@ -180,6 +180,19 @@ export default function ChatApp() {
                 }
                 return updated;
               });
+            } else if (parsed.error !== undefined) {
+              setMessages((prev) => {
+                const updated = [...prev];
+                const last = updated[updated.length - 1];
+                if (last && last.role === "assistant") {
+                  updated[updated.length - 1] = {
+                    ...last,
+                    content: `Backend Error: ${parsed.error}`,
+                    streaming: false,
+                  };
+                }
+                return updated;
+              });
             }
           } catch (e) {
             console.error("JSON parse error", e);
@@ -204,10 +217,24 @@ export default function ChatApp() {
                 }
                 return updated;
               });
+            } else if (parsed.error !== undefined) {
+              setMessages((prev) => {
+                const updated = [...prev];
+                const last = updated[updated.length - 1];
+                if (last && last.role === "assistant") {
+                  updated[updated.length - 1] = {
+                    ...last,
+                    content: `Backend Error: ${parsed.error}`,
+                    streaming: false,
+                  };
+                }
+                return updated;
+              });
             }
           } catch {}
         }
       }
+
     } catch (err) {
       if (err.name !== "AbortError") {
         setMessages((prev) => {
