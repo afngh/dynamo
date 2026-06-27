@@ -2,10 +2,13 @@ import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import TypingLoader from "./TypingLoader";
 
-export default function Message({ msg }) {
+export default function Message({ msg, user }) {
   const isUser = msg.role === "user";
   const [copied, setCopied] = useState(false);
   const [viewMode, setViewMode] = useState("markdown");
+
+  const avatarUrl = user?.user_metadata?.avatar_url || user?.user_metadata?.picture;
+  const initial = user?.email ? user.email.charAt(0).toUpperCase() : "U";
 
   const handleCopy = () => {
     navigator.clipboard.writeText(msg.content);
@@ -78,6 +81,32 @@ export default function Message({ msg }) {
           </div>
         )}
       </div>
+
+      {isUser && (
+        <div className="ms-3 flex-shrink-0">
+          {avatarUrl ? (
+            <img
+              src={avatarUrl}
+              alt="User"
+              className="rounded-circle"
+              style={{ width: 32, height: 32, objectFit: "cover" }}
+            />
+          ) : (
+            <div
+              className="rounded-circle d-flex align-items-center justify-content-center fw-semibold"
+              style={{
+                width: 32,
+                height: 32,
+                backgroundColor: "var(--user-msg-bg)",
+                color: "var(--user-msg-color)",
+                fontSize: 13
+              }}
+            >
+              {initial}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

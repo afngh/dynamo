@@ -161,15 +161,28 @@ body {
 .prompt-card {
   background: var(--input-bg);
   border: 1px solid var(--border-color);
-  border-radius: 12px;
-  padding: 14px 16px;
-  transition: all 0.15s ease;
+  border-radius: 14px;
+  padding: 16px 18px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .prompt-card:hover {
-  border-color: var(--input-focus-border);
-  transform: translateY(-1px);
+  border-color: var(--accent-color);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
   cursor: pointer;
+}
+
+.prompt-card-arrow {
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: all 0.2s ease;
+  color: var(--accent-color);
+}
+
+.prompt-card:hover .prompt-card-arrow {
+  opacity: 1;
+  transform: translateX(0);
 }
 
 .btn-claude {
@@ -244,15 +257,31 @@ body {
 }
 
 /* Hyperparameter Settings Panel & Sliders */
+.settings-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 1040;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
 .settings-panel {
   background: var(--input-bg);
   border: 1px solid var(--border-color);
-  border-radius: 14px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-  padding: 16px;
-  margin-bottom: 12px;
+  border-radius: 16px;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.2);
+  padding: 20px 24px;
   width: 100%;
   max-width: 480px;
+  z-index: 1050;
 }
 
 .form-range::-webkit-slider-thumb {

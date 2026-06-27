@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 
 class dynamo:
     def __init__(self):
-        load_dotenv(dotenv_path=".env.example")
+        load_dotenv()
 
         self.model_path = os.getenv("MODEL_PATH")
         self.config_path = os.getenv("CONFIG_PATH")

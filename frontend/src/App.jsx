@@ -8,19 +8,19 @@ import Header from "./components/Header";
 
 const SUGGESTED_PROMPTS = [
   {
-    title: "Transformer Architecture",
-    desc: "Explain causal self-attention in a decoder-only model",
-    prompt: "Can you explain how causal self-attention works in a decoder-only transformer?"
+    title: "Internet & Web Technologies",
+    desc: "Explain how global networks, IP routing, and DNS servers work together",
+    prompt: "What is the internet and how does it work?"
   },
   {
-    title: "PyTorch Deep Learning",
-    desc: "Compare RMSNorm vs LayerNorm during pretraining",
-    prompt: "How does RMSNorm differ from LayerNorm during training stability?"
+    title: "Quantum Computing",
+    desc: "Understand qubits, superposition, and how quantum computers process data",
+    prompt: "What is a quantum computer and how does it differ from a classical computer?"
   },
   {
-    title: "Code Generation",
-    desc: "Write a simple PyTorch matrix multiplication example",
-    prompt: "Show me a basic example of tensor matrix multiplication in PyTorch."
+    title: "Python Programming",
+    desc: "Explore Python syntax, versatility, and why it powers modern AI and data science",
+    prompt: "What is Python programming language and why is it popular?"
   }
 ];
 
@@ -286,10 +286,16 @@ export default function ChatApp() {
                       onClick={() => send(item.prompt)}
                     >
                       <div>
-                        <div className="fw-semibold mb-1" style={{ fontSize: 14 }}>
-                          {item.title}
+                        <div className="d-flex align-items-center justify-content-between mb-1">
+                          <div className="fw-semibold" style={{ fontSize: 14 }}>
+                            {item.title}
+                          </div>
+                          <svg className="prompt-card-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <line x1="5" y1="12" x2="19" y2="12" />
+                            <polyline points="12 5 19 12 12 19" />
+                          </svg>
                         </div>
-                        <div className="text-secondary" style={{ fontSize: 12, lineHeight: 1.4 }}>
+                        <div className="text-secondary" style={{ fontSize: 12, lineHeight: 1.45 }}>
                           {item.desc}
                         </div>
                       </div>
@@ -302,7 +308,7 @@ export default function ChatApp() {
         ) : (
           <div className="py-2">
             {messages.map((msg, i) => (
-              <Message key={i} msg={msg} />
+              <Message key={i} msg={msg} user={user} />
             ))}
             <div ref={bottomRef} />
           </div>
